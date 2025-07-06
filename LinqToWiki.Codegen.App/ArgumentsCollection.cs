@@ -1,60 +1,55 @@
 using System;
 using System.Collections.Generic;
 
-namespace LinqToWiki.Codegen.App
+namespace LinqToWiki.Codegen.App;
+
+internal class ArgumentsCollection
 {
-    class ArgumentsCollection
+    private readonly List<string> m_positionalArguments = [];
+    private readonly Dictionary<char, string> m_namedArguments = [];
+
+    private ArgumentsCollection()
     {
-        readonly List<string> m_positionalArguments = new List<string>();
-        readonly Dictionary<char, string> m_namedArguments = new Dictionary<char, string>();
+    }
 
-        private ArgumentsCollection()
-        {}
+    public static ArgumentsCollection Parse(string[] args)
+    {
+        var result = new ArgumentsCollection();
 
-        public static ArgumentsCollection Parse(string[] args)
+        var i = 0;
+        while (i < args.Length)
         {
-            var result = new ArgumentsCollection();
-
-            int i = 0;
-            while (i < args.Length)
+            var arg = args[i];
+            if (arg.StartsWith("-"))
             {
-                string arg = args[i];
-                if (arg.StartsWith("-"))
+                if (arg.Length != 2)
                 {
-                    if (arg.Length != 2)
-                        throw new InvalidOperationException(string.Format("Invalid argument: '{0}'.", arg));
-
-                    char key = arg[1];
-                    string value = args[++i];
-                    result.m_namedArguments.Add(key, value);
+                    throw new InvalidOperationException($"Invalid argument: '{arg}'.");
                 }
-                else
-                    result.m_positionalArguments.Add(arg);
-                i++;
+
+                var key = arg[1];
+                var value = args[++i];
+                result.m_namedArguments.Add(key, value);
+            }
+            else
+            {
+                result.m_positionalArguments.Add(arg);
             }
 
+            i++;
+        }
+
+        return result;
+    }
+
+    public string this[int i] => m_positionalArguments.Count <= i ? null : m_positionalArguments[i];
+
+    public string this[char c]
+    {
+        get
+        {
+            m_namedArguments.TryGetValue(c, out string result);
             return result;
-        }
-
-        public string this[int i]
-        {
-            get
-            {
-                if (m_positionalArguments.Count <= i)
-                    return null;
-
-                return m_positionalArguments[i];
-            }
-        }
-
-        public string this[char c]
-        {
-            get
-            {
-                string result;
-                m_namedArguments.TryGetValue(c, out result);
-                return result;
-            }
         }
     }
 }
