@@ -28,11 +28,15 @@ namespace LinqToWiki.Codegen.ModuleInfo
 
             var modules = element.Element("modules");
             if (modules != null)
+            {
                 result.Modules = modules.Elements().Select(e => Module.Parse(e, propsDefaults)).ToArray();
+            }
 
             var queryModules = element.Element("querymodules");
             if (queryModules != null)
+            {
                 result.QueryModules = queryModules.Elements().Select(e => Module.Parse(e, propsDefaults)).ToArray();
+            }
 
             return result;
         }

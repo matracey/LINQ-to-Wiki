@@ -1,8 +1,8 @@
+using LinqToWiki.Internals;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using LinqToWiki.Internals;
 
 namespace LinqToWiki.Codegen.ModuleInfo
 {
@@ -60,11 +60,10 @@ namespace LinqToWiki.Codegen.ModuleInfo
         public static Module Parse(XElement element, Dictionary<string, XElement> propsDefaults)
         {
             XElement propsDefault = null;
-            if (propsDefaults != null)
-                propsDefaults.TryGetValue((string)element.Attribute("name"), out propsDefault);
+            propsDefaults?.TryGetValue((string)element.Attribute("name"), out propsDefault);
 
             var propsElement = element.Element("props") ??
-                               (propsDefault == null ? null : propsDefault.Element("props"));
+                               (propsDefault?.Element("props"));
             var parametersElement = element.Element("parameters");
 
             return
@@ -78,17 +77,9 @@ namespace LinqToWiki.Codegen.ModuleInfo
                         element.Attribute("querytype") == null
                             ? null
                             : (QueryType?)Enum.Parse(typeof(QueryType), (string)element.Attribute("querytype"), true),
-                    ListResult =
-                        element.Attribute("listresult") != null
-                        || (propsDefault != null && propsDefault.Attribute("listresult") != null),
-                    Parameters =
-                        parametersElement == null
-                            ? null
-                            : parametersElement.Elements().Select(Parameter.Parse).ToArray(),
-                    PropertyGroups =
-                        propsElement == null
-                            ? null
-                            : propsElement.Elements().Select(PropertyGroup.Parse).ToArray()
+                    ListResult = element.Attribute("listresult") != null || (propsDefault?.Attribute("listresult") != null),
+                    Parameters = parametersElement?.Elements().Select(Parameter.Parse).ToArray(),
+                    PropertyGroups = propsElement?.Elements().Select(PropertyGroup.Parse).ToArray()
                 };
         }
 

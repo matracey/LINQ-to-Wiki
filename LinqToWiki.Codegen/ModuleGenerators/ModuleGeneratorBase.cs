@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using LinqToWiki.Codegen.ModuleInfo;
+﻿using LinqToWiki.Codegen.ModuleInfo;
 using LinqToWiki.Internals;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace LinqToWiki.Codegen.ModuleGenerators
 {
     /// <summary>
     /// The base class for all module generators.
     /// </summary>
-    abstract class ModuleGeneratorBase
+    internal abstract class ModuleGeneratorBase
     {
         /// <summary>
         /// Wiki, for which the module is generated.
@@ -35,7 +35,9 @@ namespace LinqToWiki.Codegen.ModuleGenerators
         public void Generate(Module module)
         {
             if (module.PropertyGroups == null)
+            {
                 return;
+            }
 
             ClassNameBase = module.Name;
 
@@ -111,16 +113,19 @@ namespace LinqToWiki.Codegen.ModuleGenerators
                 {
                     ExpressionSyntax condition = SyntaxEx.NotEquals((NamedNode)propertyValueLocal, SyntaxEx.NullLiteral());
 
-                    var simpleType = property.Type as SimpleParameterType;
-                    if (simpleType == null || (simpleType.Name != "string" && simpleType.Name != "boolean"))
+                    if (!(property.Type is SimpleParameterType simpleType) || (simpleType.Name != "string" && simpleType.Name != "boolean"))
+                    {
                         condition = SyntaxEx.And(
                             condition, SyntaxEx.NotEquals(valueValue, SyntaxEx.Literal("")));
+                    }
 
                     var ifStatement = SyntaxEx.If(condition, assignment);
                     statements.Add(ifStatement);
                 }
                 else
+                {
                     statements.Add(assignment);
+                }
             }
 
             statements.Add(SyntaxEx.Return(resultLocal));
@@ -131,12 +136,12 @@ namespace LinqToWiki.Codegen.ModuleGenerators
         }
 
         /// <summary>
-        /// Creates an overide of the <see cref="object.ToString"/> method for given properties.
+        /// Creates an override of the <see cref="object.ToString"/> method for given properties.
         /// </summary>
-        private static MethodDeclarationSyntax GenerateToStringMethod(IEnumerable<Property> properties)
+        private static MethodDeclarationSyntax GenerateToStringMethod(ICollection<Property> properties)
         {
             var formatString = string.Join(
-                "; ", properties.Select((p, i) => string.Format("{0}: {{{1}}}", GetPropertyName(p.Name, false), i)));
+                "; ", properties.Select((p, i) => $"{GetPropertyName(p.Name, false)}: {{{i}}}"));
 
             var parameters = new List<ExpressionSyntax> { SyntaxEx.Literal(formatString) };
 
@@ -161,7 +166,9 @@ namespace LinqToWiki.Codegen.ModuleGenerators
                 GetPropertyName(name), SyntaxKind.PrivateKeyword);
 
             if (description != null)
+            {
                 result = result.WithDocumentationSummary(description);
+            }
 
             return result;
         }
@@ -171,10 +178,7 @@ namespace LinqToWiki.Codegen.ModuleGenerators
         /// </summary>
         private static string FixPropertyName(string name)
         {
-            if (name == "*")
-                return "value";
-
-            return name;
+            return name == "*" ? "value" : name;
         }
 
         /// <summary>
@@ -182,16 +186,19 @@ namespace LinqToWiki.Codegen.ModuleGenerators
         /// </summary>
         private static string GetPropertyName(string name, bool identifier = true)
         {
-            if (name == "*")
-                return "value";
-            if (name == "namespace")
-                return "ns";
-            if (name == "default")
-                return "defaultvalue";
-            if (name == "new")
-                return identifier ? "@new" : "new";
-
-            return name.Replace('-', '_');
+            switch (name)
+            {
+                case "*":
+                    return "value";
+                case "namespace":
+                    return "ns";
+                case "default":
+                    return "defaultvalue";
+                case "new":
+                    return identifier ? "@new" : "new";
+                default:
+                    return name.Replace('-', '_');
+            }
         }
 
         /// <summary>
@@ -232,7 +239,9 @@ namespace LinqToWiki.Codegen.ModuleGenerators
 
                 // this type cannot be processed
                 if (typeName == null)
+                {
                     continue;
+                }
 
                 var parameter = SyntaxEx.Parameter(typeName, parameterName, nullable ? SyntaxEx.NullLiteral() : null);
 
@@ -241,7 +250,9 @@ namespace LinqToWiki.Codegen.ModuleGenerators
                 ExpressionSyntax valueExpression = (NamedNode)parameter;
 
                 if (nullable && typeName.EndsWith("?"))
+                {
                     valueExpression = SyntaxEx.MemberAccess(valueExpression, "Value");
+                }
 
                 ExpressionSyntax newQueryParameters;
                 if (typeName == "System.IO.Stream")
@@ -259,7 +270,7 @@ namespace LinqToWiki.Codegen.ModuleGenerators
                         SyntaxEx.Invocation(SyntaxEx.MemberAccess(valueExpression, "ToQueryString")));
                 }
                 var queryParametersAssignment = SyntaxEx.Assignment(queryParametersLocal, newQueryParameters);
-                
+
                 if (nullable)
                 {
                     var assignmentWithCheck = SyntaxEx.If(
@@ -268,7 +279,9 @@ namespace LinqToWiki.Codegen.ModuleGenerators
                     statements.Add(assignmentWithCheck);
                 }
                 else
+                {
                     statements.Add(queryParametersAssignment);
+                }
 
                 var parameterDocumentation = SyntaxEx.DocumentationParameter(parameterName, methodParameter.Description);
 
@@ -283,7 +296,9 @@ namespace LinqToWiki.Codegen.ModuleGenerators
 
             var modifiers = new List<SyntaxKind> { SyntaxKind.PublicKeyword };
             if (statements == null)
+            {
                 modifiers.Add(SyntaxKind.AbstractKeyword);
+            }
 
             var method = SyntaxEx.MethodDeclaration(
                 modifiers, GenerateMethodResultType(), ClassNameBase, parameters, statements)

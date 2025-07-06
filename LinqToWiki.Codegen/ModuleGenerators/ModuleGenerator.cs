@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using LinqToWiki.Codegen.ModuleInfo;
+﻿using LinqToWiki.Codegen.ModuleInfo;
 using LinqToWiki.Collections;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace LinqToWiki.Codegen.ModuleGenerators
 {
     /// <summary>
     /// Generates code for “normal” (non-query) modules.
     /// </summary>
-    class ModuleGenerator : ModuleGeneratorBase
+    internal class ModuleGenerator : ModuleGeneratorBase
     {
         /// <summary>
         /// Name of the class that will be returned by this module.
@@ -32,7 +32,8 @@ namespace LinqToWiki.Codegen.ModuleGenerators
 
         public ModuleGenerator(Wiki wiki)
             : base(wiki)
-        {}
+        {
+        }
 
         protected override void GenerateInternal(Module module)
         {
@@ -83,10 +84,7 @@ namespace LinqToWiki.Codegen.ModuleGenerators
         {
             var propertyGroup = propertyGroups.SingleOrDefault(g => g.Name == string.Empty);
 
-            if (propertyGroup == null)
-                return null;
-
-            return GenerateClassForProperties(ResultClassName, propertyGroup.Properties);
+            return propertyGroup == null ? null : GenerateClassForProperties(ResultClassName, propertyGroup.Properties);
         }
 
         protected override IEnumerable<Tuple<string, string>> GetBaseParameters(Module module)
@@ -112,12 +110,16 @@ namespace LinqToWiki.Codegen.ModuleGenerators
         protected override TypeSyntax GenerateMethodResultType()
         {
             if (m_voidResult)
+            {
                 return SyntaxFactory.ParseTypeName("void");
+            }
 
             var resultType = SyntaxFactory.ParseTypeName(ResultClassName);
 
             if (m_listResult)
+            {
                 resultType = SyntaxEx.GenericName("IEnumerable", resultType);
+            }
 
             return resultType;
         }

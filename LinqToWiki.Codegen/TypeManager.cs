@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using LinqToWiki.Codegen.ModuleInfo;
+﻿using LinqToWiki.Codegen.ModuleInfo;
 using LinqToWiki.Collections;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace LinqToWiki.Codegen
 {
@@ -13,7 +13,7 @@ namespace LinqToWiki.Codegen
     /// Handles converting API types into source code.
     /// Creates code for types for <see cref="EnumParameterType"/>.
     /// </summary>
-    class TypeManager
+    internal class TypeManager
     {
         private readonly Wiki m_wiki;
 
@@ -41,9 +41,10 @@ namespace LinqToWiki.Codegen
             ParameterType parameterType, string propertyName, string moduleName, bool multi, bool nullable = false,
             bool useItemOrCollection = true)
         {
-            var simpleType = parameterType as SimpleParameterType;
-            if (simpleType != null)
+            if (parameterType is SimpleParameterType simpleType)
+            {
                 return GetSimpleTypeName(simpleType, propertyName, multi, nullable, useItemOrCollection);
+            }
 
             return GetEnumTypeName(
                 (EnumParameterType)parameterType, propertyName, moduleName, multi, useItemOrCollection);
@@ -59,34 +60,38 @@ namespace LinqToWiki.Codegen
 
             switch (simpleType.Name)
             {
-            case "string":
-            case "user":
-            case "text":
-            case "password":
-                result = "string";
-                break;
-            case "timestamp":
-                result = "DateTime";
-                break;
-            case "namespace":
-                result = "Namespace";
-                break;
-            case "boolean":
-                result = "bool";
-                break;
-            case "integer":
-                result = propertyName.EndsWith("id") ? "long" : "int";
-                break;
-            case "upload":
-                return "System.IO.Stream";
-            default:
-                throw new InvalidOperationException(string.Format("Unknown type {0}", simpleType.Name));
+                case "string":
+                case "user":
+                case "text":
+                case "password":
+                    result = "string";
+                    break;
+                case "timestamp":
+                    result = "DateTime";
+                    break;
+                case "namespace":
+                    result = "Namespace";
+                    break;
+                case "boolean":
+                    result = "bool";
+                    break;
+                case "integer":
+                    result = propertyName.EndsWith("id") ? "long" : "int";
+                    break;
+                case "upload":
+                    return "System.IO.Stream";
+                default:
+                    throw new InvalidOperationException($"Unknown type {simpleType.Name}");
             }
 
             if (multi)
+            {
                 result = string.Format(useItemOrCollection ? "ItemOrCollection<{0}>" : "IEnumerable<{0}>", result);
+            }
             else if (nullable && result != "string" && result != "Namespace")
+            {
                 result += '?';
+            }
 
             return result;
         }
@@ -97,12 +102,15 @@ namespace LinqToWiki.Codegen
         private string GetEnumTypeName(
             EnumParameterType enumType, string propertyName, string moduleName, bool multi, bool useItemOrCollection)
         {
-            string result;
-            if (!m_enumTypeNames.TryGetValue(moduleName, enumType, out result))
+            if (!m_enumTypeNames.TryGetValue(moduleName, enumType, out var result))
+            {
                 result = GenerateType(enumType, propertyName, moduleName);
+            }
 
             if (multi)
+            {
                 result = string.Format(useItemOrCollection ? "ItemOrCollection<{0}>" : "IEnumerable<{0}>", result);
+            }
 
             return result;
         }
@@ -112,15 +120,16 @@ namespace LinqToWiki.Codegen
         /// </summary>
         private string GenerateType(EnumParameterType enumType, string propertyName, string moduleName)
         {
-            string typeName = moduleName + propertyName;
+            var typeName = moduleName + propertyName;
 
-            Dictionary<EnumParameterType, string> moduleTypes;
 
-            if (m_enumTypeNames.TryGetValue(moduleName, out moduleTypes))
+            if (m_enumTypeNames.TryGetValue(moduleName, out var moduleTypes))
             {
-                int i = 2;
+                var i = 2;
                 while (moduleTypes.Values.Contains(typeName))
+                {
                     typeName = moduleName + propertyName + i++;
+                }
             }
 
             var fixedMemberNameMapping = new TupleList<string, string>();
@@ -131,7 +140,9 @@ namespace LinqToWiki.Codegen
                 var fixedName = FixEnumMemberName(name);
 
                 if (name != fixedName.TrimStart('@'))
+                {
                     fixedMemberNameMapping.Add(fixedName, name);
+                }
 
                 memberNames.Add(fixedName);
             }
@@ -144,7 +155,7 @@ namespace LinqToWiki.Codegen
                     SyntaxEx.ObjectCreation(typeName, SyntaxEx.Literal(memberName))));
 
             var constructorParameter = SyntaxEx.Parameter("string", "value");
-            var contructor = SyntaxEx.ConstructorDeclaration(
+            var constructor = SyntaxEx.ConstructorDeclaration(
                 new[] { SyntaxKind.InternalKeyword }, typeName, new[] { constructorParameter },
                 constructorInitializer: SyntaxEx.BaseConstructorInitializer((NamedNode)constructorParameter));
 
@@ -162,7 +173,7 @@ namespace LinqToWiki.Codegen
             var notEqualsExpression = SyntaxEx.Not(equalsExpression);
 
             var equalsOperator = createOperator(SyntaxKind.EqualsEqualsToken, equalsExpression);
-            var notEqualsOPerator = createOperator(SyntaxKind.ExclamationEqualsToken, notEqualsExpression);
+            var notEqualsOperator = createOperator(SyntaxKind.ExclamationEqualsToken, notEqualsExpression);
 
             var equalsParameter = SyntaxEx.Parameter("object", "obj");
             var equalsMethod = SyntaxEx.MethodDeclaration(
@@ -177,8 +188,8 @@ namespace LinqToWiki.Codegen
                 SyntaxEx.Return(SyntaxEx.Invocation(SyntaxEx.MemberAccess("base", "GetHashCode"))));
 
             var classDeclaration =
-                SyntaxEx.ClassDeclaration(typeName, SyntaxFactory.ParseTypeName("StringValue"), contructor)
-                        .AddMembers(equalsOperator, notEqualsOPerator, equalsMethod, getHashCodeMethod)
+                SyntaxEx.ClassDeclaration(typeName, SyntaxFactory.ParseTypeName("StringValue"), constructor)
+                        .AddMembers(equalsOperator, notEqualsOperator, equalsMethod, getHashCodeMethod)
                         .AddMembers(members.ToArray<MemberDeclarationSyntax>());
 
             var namespaceDeclaration = m_wiki.Files[Wiki.Names.Enums].SingleDescendant<NamespaceDeclarationSyntax>();
@@ -213,15 +224,24 @@ namespace LinqToWiki.Codegen
         private static string FixEnumMemberName(string value)
         {
             if (value == string.Empty)
+            {
                 return "none";
+            }
+
             if (Restricted.Contains(value))
+            {
                 return '@' + value;
+            }
 
-            foreach (var tuple in ToReplaceCustom)
+            ToReplaceCustom.ToList().ForEach(tuple =>
+            {
                 value = value.Replace(tuple.Item1.ToString(), tuple.Item2);
+            });
 
-            foreach (var c in ToReplaceWithUnderscore)
+            ToReplaceWithUnderscore.ToList().ForEach(c =>
+            {
                 value = value.Replace(c, '_');
+            });
 
             return value;
         }
@@ -231,9 +251,10 @@ namespace LinqToWiki.Codegen
         /// </summary>
         public ExpressionSyntax CreateConverter(Property property, string moduleName, ExpressionSyntax value, ExpressionSyntax wiki)
         {
-            var simpleType = property.Type as SimpleParameterType;
-            if (simpleType != null)
+            if (property.Type is SimpleParameterType simpleType)
+            {
                 return CreateSimpleConverter(simpleType, property.Name, value, wiki);
+            }
 
             return CreateEnumConverter((EnumParameterType)property.Type, moduleName, value);
         }
@@ -246,27 +267,29 @@ namespace LinqToWiki.Codegen
             SimpleParameterType simpleType, string propertyName, ExpressionSyntax value, ExpressionSyntax wiki)
         {
             if (simpleType.Name == "namespace")
+            {
                 return SyntaxEx.Invocation(SyntaxEx.MemberAccess("ValueParser", "ParseNamespace"), value, wiki);
+            }
 
             string typeName;
 
             switch (simpleType.Name)
             {
-            case "string":
-            case "user":
-                typeName = "String";
-                break;
-            case "timestamp":
-                typeName = "DateTime";
-                break;
-            case "boolean":
-                typeName = "Boolean";
-                break;
-            case "integer":
-                typeName = propertyName.EndsWith("id") ? "Int64" : "Int32";
-                break;
-            default:
-                throw new InvalidOperationException(string.Format("Unknown type {0}", simpleType.Name));
+                case "string":
+                case "user":
+                    typeName = "String";
+                    break;
+                case "timestamp":
+                    typeName = "DateTime";
+                    break;
+                case "boolean":
+                    typeName = "Boolean";
+                    break;
+                case "integer":
+                    typeName = propertyName.EndsWith("id") ? "Int64" : "Int32";
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unknown type {simpleType.Name}");
             }
 
             return SyntaxEx.Invocation(SyntaxEx.MemberAccess("ValueParser", "Parse" + typeName), value);

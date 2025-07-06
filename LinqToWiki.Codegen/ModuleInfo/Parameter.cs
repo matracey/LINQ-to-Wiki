@@ -8,7 +8,8 @@ namespace LinqToWiki.Codegen.ModuleInfo
     public class Parameter
     {
         private Parameter()
-        {}
+        {
+        }
 
         /// <summary>
         /// Name of the parameter.
@@ -31,7 +32,7 @@ namespace LinqToWiki.Codegen.ModuleInfo
         public bool Required { get; private set; }
 
         /// <summary>
-        /// Does this parameter accept mutiple values of the given type?
+        /// Does this parameter accept multiple values of the given type?
         /// </summary>
         public bool Multi { get; private set; }
 
@@ -46,19 +47,19 @@ namespace LinqToWiki.Codegen.ModuleInfo
         public static Parameter Parse(XElement element)
         {
             return new Parameter
-                   {
-                       Name = (string)element.Attribute("name"),
-                       Description = (string)element.Attribute("description"),
-                       Type = ParameterType.Parse(element),
-                       Required = element.Attribute("required") != null,
-                       Multi = element.Attribute("multi") != null,
-                       Deprecated = element.Attribute("deprecated") != null
-                   };
+            {
+                Name = (string)element.Attribute("name"),
+                Description = (string)element.Attribute("description"),
+                Type = ParameterType.Parse(element),
+                Required = element.Attribute("required") != null,
+                Multi = element.Attribute("multi") != null,
+                Deprecated = element.Attribute("deprecated") != null
+            };
         }
 
         public override string ToString()
         {
-            return string.Format("Name: {0}, Type: {1}, Description: {2}", Name, Type, Description);
+            return $"Name: {Name}, Type: {Type}, Description: {Description}";
         }
     }
 }

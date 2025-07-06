@@ -1,10 +1,4 @@
-﻿using System;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using LinqToWiki.Codegen.ModuleGenerators;
+﻿using LinqToWiki.Codegen.ModuleGenerators;
 using LinqToWiki.Codegen.ModuleInfo;
 using LinqToWiki.Collections;
 using LinqToWiki.Internals;
@@ -13,6 +7,12 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CSharp;
+using System;
+using System.CodeDom.Compiler;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 
 namespace LinqToWiki.Codegen
 {
@@ -22,7 +22,7 @@ namespace LinqToWiki.Codegen
     public class Wiki
     {
         /// <summary>
-        /// Nnames of basic generated types.
+        /// Names of basic generated types.
         /// </summary>
         internal static class Names
         {
@@ -35,7 +35,8 @@ namespace LinqToWiki.Codegen
         }
 
         private const string Extension = ".cs";
-
+        private const string PagesSourcePageSizePropertyName = "PagesSourcePageSize";
+        private const string TypeParameterName = "TData";
         private readonly ModulesSource m_modulesSource;
 
         private int m_modulesFinished;
@@ -125,7 +126,7 @@ namespace LinqToWiki.Codegen
 
         /// <summary>
         /// Creates the <c>Wiki</c> class, that is used as an entry point for the whole API.
-        /// It can be used to access non-query modules directly and non-prop query mdoules
+        /// It can be used to access non-query modules directly and non-prop query modules
         /// indirectly though its <c>Query</c> property.
         /// </summary>
         private void CreateWikiClass(string baseUri, string apiPath)
@@ -136,10 +137,9 @@ namespace LinqToWiki.Codegen
             var queryProperty = SyntaxEx.AutoPropertyDeclaration(
                 new[] { SyntaxKind.PublicKeyword }, Names.QueryAction, "Query", SyntaxKind.PrivateKeyword);
 
-            var pagesSourcePageSizePropertyName = "PagesSourcePageSize";
-            var wikiFieldPagesSourcePageSizeProperty = SyntaxEx.MemberAccess(wikiField, pagesSourcePageSizePropertyName);
+            var wikiFieldPagesSourcePageSizeProperty = SyntaxEx.MemberAccess(wikiField, PagesSourcePageSizePropertyName);
             var pagesSourcePageSizeProperty = SyntaxEx.PropertyDeclaration(
-                new[] { SyntaxKind.PublicKeyword }, SyntaxFactory.ParseTypeName("int"), pagesSourcePageSizePropertyName,
+                new[] { SyntaxKind.PublicKeyword }, SyntaxFactory.ParseTypeName("int"), PagesSourcePageSizePropertyName,
                 getStatements: new[] { SyntaxEx.Return(wikiFieldPagesSourcePageSizeProperty) },
                 setStatements:
                     new[] { SyntaxEx.Assignment(wikiFieldPagesSourcePageSizeProperty, SyntaxFactory.IdentifierName("value")) });
@@ -200,7 +200,7 @@ namespace LinqToWiki.Codegen
 
             foreach (var pageSource in pageSources)
             {
-                string sourceTypeName = pageSource.sourceType.Name;
+                var sourceTypeName = pageSource.sourceType.Name;
                 sourceTypeName = sourceTypeName.Substring(0, sourceTypeName.IndexOf('`'));
 
                 var parameterVersions =
@@ -243,8 +243,7 @@ namespace LinqToWiki.Codegen
         private void CreatePageResultClass()
         {
             var infoResultClassName = Files["info"].SingleDescendant<ClassDeclarationSyntax>().Identifier.ValueText;
-            var typeParameterName = "TData";
-            var dataPropertyType = SyntaxEx.GenericName("IEnumerable", typeParameterName);
+            var dataPropertyType = SyntaxEx.GenericName("IEnumerable", TypeParameterName);
 
             var infoProperty = SyntaxEx.AutoPropertyDeclaration(
                 new[] { SyntaxKind.PublicKeyword }, infoResultClassName, "Info", SyntaxKind.PrivateKeyword);
@@ -266,17 +265,17 @@ namespace LinqToWiki.Codegen
                 new[] { SyntaxKind.PublicKeyword }, Names.PageResult, new[] { infoParameter, dataParameter }, ctorBody);
 
             var pageResultClass = SyntaxEx.ClassDeclaration(
-                Names.PageResult, new[] { SyntaxEx.TypeParameter(typeParameterName) }, null,
+                Names.PageResult, new[] { SyntaxEx.TypeParameter(TypeParameterName) }, null,
                 new MemberDeclarationSyntax[] { infoProperty, dataProperty, ctor });
 
-            var pageResultType = SyntaxEx.GenericName(Names.PageResult, typeParameterName);
+            var pageResultType = SyntaxEx.GenericName(Names.PageResult, TypeParameterName);
 
             var createMethodBody = SyntaxEx.Return(
                 SyntaxEx.ObjectCreation(pageResultType, (NamedNode)infoParameter, (NamedNode)dataParameter));
 
             var createMethod = SyntaxEx.MethodDeclaration(
                 new[] { SyntaxKind.PublicKeyword, SyntaxKind.StaticKeyword }, pageResultType, "Create",
-                new[] { SyntaxEx.TypeParameter(typeParameterName) }, new[] { infoParameter, dataParameter },
+                new[] { SyntaxEx.TypeParameter(TypeParameterName) }, new[] { infoParameter, dataParameter },
                 createMethodBody);
 
             var pageResultHelperClass = SyntaxEx.ClassDeclaration(SyntaxKind.StaticKeyword, Names.PageResult, createMethod);
@@ -300,15 +299,21 @@ namespace LinqToWiki.Codegen
                 if (module.QueryType == QueryType.List || module.QueryType == QueryType.Meta)
                 {
                     if (module.ListResult)
+                    {
                         new QueryModuleGenerator(this).Generate(module);
+                    }
                     else
+                    {
                         new SingleQueryModuleGenerator(this).Generate(module);
+                    }
                 }
                 else
                 {
                     // unknown result properties: not supported
                     if (module.PropertyGroups == null)
+                    {
                         continue;
+                    }
 
                     if (module.Name == "info")
                     {
@@ -323,7 +328,9 @@ namespace LinqToWiki.Codegen
                     {
                         // this is not actually a query module
                         if (module.Name == "stashimageinfo")
+                        {
                             continue;
+                        }
 
                         new PropModuleGenerator(this).Generate(module);
                     }
@@ -337,7 +344,9 @@ namespace LinqToWiki.Codegen
         public void AddModules(IEnumerable<string> moduleNames)
         {
             foreach (var module in m_modulesSource.GetModules(moduleNames))
+            {
                 new ModuleGenerator(this).Generate(module);
+            }
         }
 
         /// <summary>
@@ -363,7 +372,9 @@ namespace LinqToWiki.Codegen
         public CompilerResults Compile(string name, string path = "")
         {
             if (m_modulesFinished == 0)
+            {
                 throw new InvalidOperationException("No modules were successfully finished, nothing to compile.");
+            }
 
             var compiler = new CSharpCodeProvider();
 
@@ -380,7 +391,7 @@ namespace LinqToWiki.Codegen
                     }, Path.Combine(path, name + ".dll"))
                 {
                     TreatWarningsAsErrors = true,
-                    CompilerOptions = string.Format("/doc:{0} /nowarn:1591 /debug", Path.Combine(path, name + ".xml")),
+                    CompilerOptions = $"/doc:{Path.Combine(path, name + ".xml")} /nowarn:1591 /debug",
                     IncludeDebugInformation = false
                 },
                 files.ToArray());
@@ -392,7 +403,9 @@ namespace LinqToWiki.Codegen
         public IEnumerable<string> WriteToFiles(string directoryPath)
         {
             if (m_modulesFinished == 0)
+            {
                 throw new InvalidOperationException("No modules were successfully finished, nothing to write out.");
+            }
 
             var result = new List<string>();
 
@@ -412,14 +425,18 @@ namespace LinqToWiki.Codegen
         {
             var builder = new StringBuilder();
 
-            bool first = true;
+            var first = true;
 
             foreach (var file in Files)
             {
                 if (first)
+                {
                     first = false;
+                }
                 else
+                {
                     builder.AppendLine();
+                }
 
                 builder.AppendLine(file.Item1 + Extension + ':');
                 builder.AppendLine(Formatter.Format(file.Item2, new AdhocWorkspace()).ToString());

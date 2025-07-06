@@ -6,7 +6,7 @@ namespace LinqToWiki.Codegen
     /// <summary>
     /// Contains LinqToWiki-specific Roslyn extension methods.
     /// </summary>
-    static class LinqToWikiRoslynExtensions
+    internal static class LinqToWikiRoslynExtensions
     {
         /// <summary>
         /// Returns the given class with a private parameterless constructor added.

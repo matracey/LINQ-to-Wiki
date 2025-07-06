@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using LinqToWiki.Collections;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace LinqToWiki.Codegen
 {
@@ -326,15 +325,20 @@ namespace LinqToWiki.Codegen
         {
             var accesors = new List<AccessorDeclarationSyntax>();
             if (!(isAbstract && getModifier == SyntaxKind.PrivateKeyword))
+            {
                 accesors.Add(
                     SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                     .WithModifiers(TokenList(getModifier))
                     .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
+            }
+
             if (!(isAbstract && setModifier == SyntaxKind.PrivateKeyword))
+            {
                 accesors.Add(
                     SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
                         .WithModifiers(TokenList(setModifier))
                         .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
+            }
 
             return SyntaxFactory.PropertyDeclaration(type, propertyName)
                 .WithModifiers(TokenList(modifiers))
@@ -354,10 +358,12 @@ namespace LinqToWiki.Codegen
                     .WithBody(SyntaxFactory.Block(getStatements.ToSyntaxList())));
 
             if (setStatements != null)
+            {
                 accessors.Add(
                     SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
                     .WithModifiers(TokenList(setModifier))
                     .WithBody(SyntaxFactory.Block(setStatements.ToSyntaxList())));
+            }
 
             return SyntaxFactory.PropertyDeclaration(type, propertyName)
                 .WithModifiers(TokenList(modifiers))
@@ -472,7 +478,9 @@ namespace LinqToWiki.Codegen
             var expressionsArray = expressions.ToArray();
 
             if (expressionsArray.Length == 1)
+            {
                 return expressionsArray[0];
+            }
 
             return SyntaxFactory.InitializerExpression(
                 SyntaxKind.ObjectInitializerExpression, expressionsArray.ToSeparatedList());
@@ -484,7 +492,9 @@ namespace LinqToWiki.Codegen
                 SyntaxKind.ArrayInitializerExpression, expressions.ToSeparatedList());
 
             if (string.IsNullOrEmpty(typeName))
+            {
                 return SyntaxFactory.ImplicitArrayCreationExpression(initializer);
+            }
 
             return SyntaxFactory.ArrayCreationExpression(
                 SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName(typeName), SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier())),
@@ -694,10 +704,12 @@ namespace LinqToWiki.Codegen
             var attributeSyntaxes = new List<XmlAttributeSyntax>();
 
             if (name != null)
+            {
                 attributeSyntaxes.Add(
                     SyntaxFactory.XmlNameAttribute(
                         XmlName("name"), SyntaxFactory.Token(SyntaxKind.DoubleQuoteToken),
                         name, SyntaxFactory.Token(SyntaxKind.DoubleQuoteToken)));
+            }
 
             return SyntaxFactory.XmlElement(
                 SyntaxFactory.XmlElementStartTag(nameSyntax, attributeSyntaxes.ToSyntaxList())
@@ -769,7 +781,10 @@ namespace LinqToWiki.Codegen
             get
             {
                 if (m_name == null)
+                {
                     throw new InvalidOperationException();
+                }
+
                 return m_name;
             }
         }

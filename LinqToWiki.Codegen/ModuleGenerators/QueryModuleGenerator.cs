@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using LinqToWiki.Codegen.ModuleInfo;
+﻿using LinqToWiki.Codegen.ModuleInfo;
 using LinqToWiki.Collections;
 using LinqToWiki.Internals;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace LinqToWiki.Codegen.ModuleGenerators
 {
@@ -13,7 +13,7 @@ namespace LinqToWiki.Codegen.ModuleGenerators
     /// or <see cref="LinqToWiki.Internals.QueryType.Meta"/> query modules
     /// that return a list of results.
     /// </summary>
-    class QueryModuleGenerator : ModuleGeneratorBase
+    internal class QueryModuleGenerator : ModuleGeneratorBase
     {
         private string m_selectClassName;
         private string m_whereClassName;
@@ -22,17 +22,15 @@ namespace LinqToWiki.Codegen.ModuleGenerators
         /// <summary>
         /// Name of the class that contains the entry method for this module.
         /// </summary>
-        protected virtual string MethodClassName
-        {
-            get { return Wiki.Names.QueryAction; }
-        }
+        protected virtual string MethodClassName => Wiki.Names.QueryAction;
 
         private FieldDeclarationSyntax m_selectProps;
         private GenericNameSyntax m_queryType;
 
         public QueryModuleGenerator(Wiki wiki)
             : base(wiki)
-        {}
+        {
+        }
 
         protected override void GenerateInternal(Module module)
         {
@@ -49,11 +47,10 @@ namespace LinqToWiki.Codegen.ModuleGenerators
             // don't belong anywhere, are used in a special way
             RemoveAndReturnByNames(parameters, "continue", "offset", "limit", "prop");
 
-            var whereParameters = parameters;
 
             var selectClass = GenerateSelect(module.PropertyGroups, module.Name == "revisions");
-            var whereClass = GenerateWhere(whereParameters);
-            var orderByClass = GenerateOrderBy(sortParameters, module.PropertyGroups.SelectMany(g => g.Properties));
+            var whereClass = GenerateWhere(parameters);
+            var orderByClass = GenerateOrderBy(sortParameters, module.PropertyGroups.SelectMany(g => g.Properties).ToList());
 
             var codeUnit = SyntaxEx.CompilationUnit(
                 SyntaxEx.NamespaceDeclaration(Wiki.EntitiesNamespace, selectClass, whereClass, orderByClass),
@@ -62,7 +59,7 @@ namespace LinqToWiki.Codegen.ModuleGenerators
 
             Wiki.Files.Add(ClassNameBase, codeUnit);
 
-            string queryTypeName = "WikiQuery";
+            var queryTypeName = "WikiQuery";
             var queryTypeGenericParameters = new List<string> { m_whereClassName, m_selectClassName };
 
             if (orderByClass != null)
@@ -87,9 +84,13 @@ namespace LinqToWiki.Codegen.ModuleGenerators
             {
                 var type = (EnumParameterType)dirParameter.Type;
                 if (type.Values.Any(x => x == "ascending"))
+                {
                     sortType = SortType.Ascending;
+                }
                 else if (type.Values.Any(x => x == "newer"))
+                {
                     sortType = SortType.Newer;
+                }
             }
 
             GenerateMethod(module, methodParameters, m_selectClassName, m_selectProps, MethodClassName, false, sortType);
@@ -134,23 +135,27 @@ namespace LinqToWiki.Codegen.ModuleGenerators
         }
 
         /// <summary>
-        /// Creates class that is ised in the <c>orderby</c> clause.
+        /// Creates class that is used in the <c>orderby</c> clause.
         /// Returns <c>null</c>, if the module doesn't support sorting.
         /// </summary>
-        private ClassDeclarationSyntax GenerateOrderBy(IEnumerable<Parameter> parameters, IEnumerable<Property> properties)
+        private ClassDeclarationSyntax GenerateOrderBy(ICollection<Parameter> parameters, ICollection<Property> properties)
         {
             var propertyTypes = properties.Distinct().ToDictionary(p => p.Name, p => p.Type);
 
             var sortParameter = parameters.SingleOrDefault(p => p.Name == "sort");
 
-            if (!parameters.Any(p => p.Name == "dir"))
+            if (parameters.All(p => p.Name != "dir"))
+            {
                 return null;
+            }
 
             IEnumerable<PropertyDeclarationSyntax> propertyDeclarations = null;
 
             if (sortParameter != null)
+            {
                 propertyDeclarations =
                     ((EnumParameterType)sortParameter.Type).Values.Select(v => GenerateProperty(v, propertyTypes[v]));
+            }
 
             return SyntaxEx.ClassDeclaration(m_orderByClassName, propertyDeclarations)
                 .AddPrivateConstructor();

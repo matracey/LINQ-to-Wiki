@@ -29,36 +29,46 @@ namespace LinqToWiki.Codegen.ModuleInfo
         public static Property Parse(XElement element)
         {
             return new Property
-                   {
-                       Name = (string)element.Attribute("name"),
-                       Type = ParameterType.Parse(element),
-                       Nullable = element.Attribute("nullable") != null
-                   };
+            {
+                Name = (string)element.Attribute("name"),
+                Type = ParameterType.Parse(element),
+                Nullable = element.Attribute("nullable") != null
+            };
         }
 
         public override string ToString()
         {
-            return string.Format("Name: {0}, Type: {1}", Name, Type);
+            return $"Name: {Name}, Type: {Type}";
         }
 
         public bool Equals(Property other)
         {
             if (ReferenceEquals(null, other))
+            {
                 return false;
+            }
+
             if (ReferenceEquals(this, other))
+            {
                 return true;
+            }
+
             return Equals(other.Name, Name) && Equals(other.Type, Type);
         }
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
+            {
                 return false;
+            }
+
             if (ReferenceEquals(this, obj))
+            {
                 return true;
-            if (obj.GetType() != typeof(Property))
-                return false;
-            return Equals((Property)obj);
+            }
+
+            return obj.GetType() == typeof(Property) && Equals((Property)obj);
         }
 
         public override int GetHashCode()

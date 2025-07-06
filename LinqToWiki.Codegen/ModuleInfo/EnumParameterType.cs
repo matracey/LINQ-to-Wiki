@@ -8,7 +8,7 @@ namespace LinqToWiki.Codegen.ModuleInfo
     /// Parameter or property type whose value can be from a fixed set of strings.
     /// Is represented as <see cref="LinqToWiki.Internals.StringValue"/> in generated code.
     /// </summary>
-    class EnumParameterType : ParameterType
+    internal class EnumParameterType : ParameterType
     {
         /// <summary>
         /// The set of possible values.
@@ -25,10 +25,10 @@ namespace LinqToWiki.Codegen.ModuleInfo
 
         public override bool Equals(ParameterType other)
         {
-            var otherEnum = other as EnumParameterType;
-
-            if (otherEnum == null)
+            if (!(other is EnumParameterType otherEnum))
+            {
                 return false;
+            }
 
             return this.Values.SequenceEqual(otherEnum.Values);
         }
@@ -36,7 +36,10 @@ namespace LinqToWiki.Codegen.ModuleInfo
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(this, obj))
+            {
                 return true;
+            }
+
             return Equals(obj as ParameterType);
         }
 
@@ -46,14 +49,17 @@ namespace LinqToWiki.Codegen.ModuleInfo
             {
                 int hash = 17;
                 foreach (var value in Values)
+                {
                     hash = hash * 23 + value.GetHashCode();
+                }
+
                 return hash;
             }
         }
 
         public override string ToString()
         {
-            return string.Format("[{0}]", string.Join(", ", Values));
+            return $"[{string.Join(", ", Values)}]";
         }
     }
 }

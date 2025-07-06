@@ -12,7 +12,9 @@ namespace LinqToWiki.Codegen.ModuleInfo
         {
             var typeAttribute = element.Attribute("type");
             if (typeAttribute != null)
+            {
                 return new SimpleParameterType((string)typeAttribute);
+            }
 
             var typeElement = element.Element("type");
             return new EnumParameterType(typeElement);

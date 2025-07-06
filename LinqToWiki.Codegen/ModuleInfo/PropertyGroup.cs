@@ -25,10 +25,10 @@ namespace LinqToWiki.Codegen.ModuleInfo
         public static PropertyGroup Parse(XElement element)
         {
             return new PropertyGroup
-                   {
-                       Name = (string)element.Attribute("name"),
-                       Properties = element.Element("properties").Elements().Select(Property.Parse).ToArray()
-                   };
+            {
+                Name = (string)element.Attribute("name"),
+                Properties = element.Element("properties")?.Elements().Select(Property.Parse).ToArray()
+            };
         }
     }
 }

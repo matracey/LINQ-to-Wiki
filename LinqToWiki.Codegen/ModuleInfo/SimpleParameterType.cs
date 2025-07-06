@@ -3,7 +3,7 @@ namespace LinqToWiki.Codegen.ModuleInfo
     /// <summary>
     /// A simple or primitive type represented just by its name.
     /// </summary>
-    class SimpleParameterType : ParameterType
+    internal class SimpleParameterType : ParameterType
     {
         /// <summary>
         /// Name of the type.
@@ -17,10 +17,10 @@ namespace LinqToWiki.Codegen.ModuleInfo
 
         public override bool Equals(ParameterType other)
         {
-            var otherSimple = other as SimpleParameterType;
-
-            if (otherSimple == null)
+            if (!(other is SimpleParameterType otherSimple))
+            {
                 return false;
+            }
 
             return this.Name == otherSimple.Name;
         }
@@ -28,7 +28,10 @@ namespace LinqToWiki.Codegen.ModuleInfo
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(this, obj))
+            {
                 return true;
+            }
+
             return Equals(obj as ParameterType);
         }
 

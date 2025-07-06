@@ -1,10 +1,10 @@
-﻿using System;
+﻿using LinqToWiki.Collections;
+using LinqToWiki.Internals;
+using LinqToWiki.Parameters;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using LinqToWiki.Collections;
-using LinqToWiki.Internals;
-using LinqToWiki.Parameters;
 
 namespace LinqToWiki.Codegen.ModuleInfo
 {
@@ -22,8 +22,10 @@ namespace LinqToWiki.Codegen.ModuleInfo
         {
             Dictionary<string, XElement> propsDefaults = null;
             if (propsDefaultsPath != null)
+            {
                 propsDefaults =
-                    XDocument.Load(propsDefaultsPath).Root.Elements().ToDictionary(e => (string)e.Attribute("name"));
+                    XDocument.Load(propsDefaultsPath).Root?.Elements().ToDictionary(e => (string)e.Attribute("name"));
+            }
 
             m_processor = new QueryProcessor<ParamInfo>(
                 wiki,
@@ -60,7 +62,9 @@ namespace LinqToWiki.Codegen.ModuleInfo
         public IEnumerable<string> GetAllQueryModuleNames()
         {
             if (m_queryModuleNames == null)
+            {
                 RetrieveModuleNames();
+            }
 
             return m_queryModuleNames;
         }
@@ -71,7 +75,9 @@ namespace LinqToWiki.Codegen.ModuleInfo
         public IEnumerable<string> GetAllModuleNames()
         {
             if (m_moduleNames == null)
+            {
                 RetrieveModuleNames();
+            }
 
             return m_moduleNames;
         }
@@ -102,7 +108,7 @@ namespace LinqToWiki.Codegen.ModuleInfo
             const int pageSize = 50;
             var moduleNamesArray = moduleNames.ToArray();
 
-            for (int i = 0; i < moduleNamesArray.Length; i += pageSize)
+            for (var i = 0; i < moduleNamesArray.Length; i += pageSize)
             {
                 var result = m_processor
                     .ExecuteSingle(
@@ -111,7 +117,9 @@ namespace LinqToWiki.Codegen.ModuleInfo
                             .AddMultipleValues(parameterName, moduleNames.Skip(i).Take(pageSize)));
 
                 foreach (var module in modulesSelector(result))
+                {
                     yield return module;
+                }
             }
         }
     }

@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using LinqToWiki.Codegen.ModuleInfo;
+﻿using LinqToWiki.Codegen.ModuleInfo;
 using LinqToWiki.Collections;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
+using System.Collections.Generic;
 
 namespace LinqToWiki.Codegen.ModuleGenerators
 {
@@ -12,11 +12,12 @@ namespace LinqToWiki.Codegen.ModuleGenerators
     /// Generates code for <see cref="LinqToWiki.Internals.QueryType.Prop"/> query modules
     /// that return a single result (like <c>categoryinfo</c>).
     /// </summary>
-    class SinglePropModuleGenerator : ModuleGenerator
+    internal class SinglePropModuleGenerator : ModuleGenerator
     {
         public SinglePropModuleGenerator(Wiki wiki)
             : base(wiki)
-        {}
+        {
+        }
 
         protected override void GenerateMethod(Module module)
         {

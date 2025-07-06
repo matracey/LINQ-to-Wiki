@@ -1,22 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using LinqToWiki.Codegen.ModuleInfo;
+﻿using LinqToWiki.Codegen.ModuleInfo;
 using LinqToWiki.Collections;
 using LinqToWiki.Internals;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace LinqToWiki.Codegen.ModuleGenerators
 {
     /// Generates code for <see cref="LinqToWiki.Internals.QueryType.Meta"/> query modules,
     /// that return a single result (like <c>userinfo</c>).
-    class SingleQueryModuleGenerator : ModuleGenerator
+    internal class SingleQueryModuleGenerator : ModuleGenerator
     {
         public SingleQueryModuleGenerator(Wiki wiki)
             : base(wiki)
-        {}
+        {
+        }
 
         protected override void GenerateMethod(Module module)
         {
@@ -45,7 +46,7 @@ namespace LinqToWiki.Codegen.ModuleGenerators
             var parseMethodBody = resultClass.DescendantNodes()
                 .OfType<MethodDeclarationSyntax>()
                 .Single(m => m.Identifier.ValueText == "Parse")
-                .Body;
+                .Body ?? throw new InvalidOperationException("method declaration cannot be null");
 
             var statements = parseMethodBody.Statements;
 

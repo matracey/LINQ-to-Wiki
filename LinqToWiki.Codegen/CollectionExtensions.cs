@@ -6,7 +6,7 @@ namespace LinqToWiki.Codegen
     /// <summary>
     /// Extension methods for collections
     /// </summary>
-    static class CollectionExtensions
+    internal static class CollectionExtensions
     {
         /// <summary>
         /// Removes items matching <see cref="predicate"/> from <see cref="list"/>
@@ -16,7 +16,7 @@ namespace LinqToWiki.Codegen
         {
             var result = new List<T>();
 
-            int i = 0;
+            var i = 0;
             while (i < list.Count)
             {
                 var item = list[i];
@@ -26,7 +26,9 @@ namespace LinqToWiki.Codegen
                     list.RemoveAt(i);
                 }
                 else
+                {
                     i++;
+                }
             }
 
             return result;
