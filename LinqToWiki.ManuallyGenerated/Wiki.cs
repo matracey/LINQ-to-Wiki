@@ -17,10 +17,7 @@ namespace LinqToWiki
 
         public QueryAction Query { get; private set; }
 
-        public NamespaceInfo Namespaces
-        {
-            get { return m_info.Namespaces; }
-        }
+        public NamespaceInfo Namespaces => m_info.Namespaces;
 
         public LoginResult Login(string name, string password, string token = null)
         {
@@ -33,13 +30,19 @@ namespace LinqToWiki
             var parameters = QueryParameters.Create<LoginResult>();
 
             if (name != null)
+            {
                 parameters = parameters.AddSingleValue("name", name);
+            }
 
             if (password != null)
+            {
                 parameters = parameters.AddSingleValue("password", password);
+            }
 
             if (token != null)
+            {
                 parameters = parameters.AddSingleValue("token", token);
+            }
 
             return queryProcessor.ExecuteSingle(parameters);
         }

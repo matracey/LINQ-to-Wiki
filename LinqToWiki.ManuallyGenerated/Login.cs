@@ -6,7 +6,8 @@ namespace LinqToWiki
     public class LoginResult
     {
         private LoginResult()
-        {}
+        {
+        }
 
         public Result Result { get; private set; }
 
