@@ -95,7 +95,8 @@ namespace LinqToWiki.Internals
             IEnumerable<Tuple<string, string>> baseParameters, IDictionary<string, string[]> props,
             Func<XElement, T> parser)
             : this(moduleName, prefix, queryType, sortType, baseParameters, props, (elem, _) => parser(elem))
-        {}
+        {
+        }
 
         /// <summary>
         /// Parses an XML element representing one item from the result.

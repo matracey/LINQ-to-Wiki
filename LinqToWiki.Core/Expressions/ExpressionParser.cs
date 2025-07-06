@@ -10,7 +10,7 @@ namespace LinqToWiki.Expressions
     /// <summary>
     /// Parses various expression kinds and returns them as a <see cref="QueryParameters{TSource,TResult}"/>.
     /// </summary>
-    static class ExpressionParser
+    internal static class ExpressionParser
     {
         /// <summary>
         /// Parses a <c>where</c> expression.
@@ -26,44 +26,41 @@ namespace LinqToWiki.Expressions
         }
 
         /// <summary>
-        /// Parses a single expression from <c>where</c>. If necessary, calls itself recursivelly.
+        /// Parses a single expression from <c>where</c>. If necessary, calls itself recursively.
         /// </summary>
         private static QueryParameters<TSource, TResult> ParseWhereSubexpression<TSource, TResult>(
             Expression body, QueryParameters<TSource, TResult> previousParameters)
         {
-            var memberExpression = body as MemberExpression;
-
-            if (memberExpression != null)
-                return AddValue(previousParameters, memberExpression, true);
-
-            var unaryExpression = body as UnaryExpression;
-
-            if (unaryExpression != null)
+            switch (body)
             {
-                var memberAccess = unaryExpression.Operand as MemberExpression;
-                if (unaryExpression.NodeType == ExpressionType.Not && memberAccess != null)
-                    return AddValue(previousParameters, memberAccess, false);
-
-                throw new ArgumentException(string.Format("Unknown type of unary expression: {0}.", unaryExpression));
+                case MemberExpression memberExpression:
+                    return AddValue(previousParameters, memberExpression, true);
+                case UnaryExpression unaryExpression:
+                    {
+                        return unaryExpression.NodeType == ExpressionType.Not && unaryExpression.Operand is MemberExpression memberAccess
+                            ? AddValue(previousParameters, memberAccess, false)
+                            : throw new ArgumentException($"Unknown type of unary expression: {unaryExpression}.");
+                    }
             }
 
-            var binaryExpression = body as BinaryExpression;
 
-            if (binaryExpression != null)
+            if (!(body is BinaryExpression binaryExpression))
             {
-                if (binaryExpression.NodeType == ExpressionType.Equal)
-                    return AddValue(previousParameters, ParseWhereEqualExpression(binaryExpression));
-
-                if (binaryExpression.NodeType == ExpressionType.AndAlso || binaryExpression.NodeType == ExpressionType.And)
-                {
-                    var afterLeft = ParseWhereSubexpression(binaryExpression.Left, previousParameters);
-                    return ParseWhereSubexpression(binaryExpression.Right, afterLeft);
-                }
-
-                throw new ArgumentException(string.Format("Unknown type of binary expression: {0}.", binaryExpression));
+                throw new ArgumentException($"Unknown type of expression: {body}.");
             }
 
-            throw new ArgumentException(string.Format("Unknown type of expression: {0}.", body));
+            if (binaryExpression.NodeType == ExpressionType.Equal)
+            {
+                return AddValue(previousParameters, ParseWhereEqualExpression(binaryExpression));
+            }
+
+            if (binaryExpression.NodeType != ExpressionType.AndAlso && binaryExpression.NodeType != ExpressionType.And)
+            {
+                throw new ArgumentException($"Unknown type of binary expression: {binaryExpression}.");
+            }
+
+            var afterLeft = ParseWhereSubexpression(binaryExpression.Left, previousParameters);
+            return ParseWhereSubexpression(binaryExpression.Right, afterLeft);
         }
 
         /// <summary>
@@ -95,10 +92,7 @@ namespace LinqToWiki.Expressions
             var result = ParsePropertyEqualsConstantExpression(expression)
                          ?? ParsePropertyEqualsConstantExpression(expression.Switch());
 
-            if (result == null)
-                throw new ArgumentException(string.Format("Could not parse expression: {0}.", expression));
-
-            return result;
+            return result ?? throw new ArgumentException($"Could not parse expression: {expression}.");
         }
 
         /// <summary>
@@ -106,20 +100,22 @@ namespace LinqToWiki.Expressions
         /// </summary>
         private static Tuple<MemberExpression, object> ParsePropertyEqualsConstantExpression(BinaryExpression expression)
         {
-            var memberAccess = expression.Left as MemberExpression;
-
-            if (memberAccess == null)
+            if (!(expression.Left is MemberExpression memberAccess))
+            {
                 return null;
+            }
 
             if (!(memberAccess.Expression is ParameterExpression))
+            {
                 return null;
+            }
 
-            var valueExpression = expression.Right as ConstantExpression;
-
-            if (valueExpression == null)
+            if (!(expression.Right is ConstantExpression valueExpression))
+            {
                 return null;
+            }
 
-            object value = valueExpression.Value;
+            var value = valueExpression.Value;
 
             return Tuple.Create(memberAccess, value);
         }
@@ -130,11 +126,11 @@ namespace LinqToWiki.Expressions
         public static string ReversePropertyName(string propertyName)
         {
             if (propertyName == "value")
+            {
                 return "*";
-            if (propertyName == "defaultvalue")
-                return "default";
+            }
 
-            return propertyName;
+            return propertyName == "defaultvalue" ? "default" : propertyName;
         }
 
         /// <summary>
@@ -148,21 +144,27 @@ namespace LinqToWiki.Expressions
             QueryParameters<TSource, TResult> previousParameters,
             bool ascending)
         {
-            var parameter = expression.Body as ParameterExpression;
-            var memberAccess = expression.Body as MemberExpression;
-
             string memberName;
-            if (parameter != null)
-                memberName = null;
-            else if (memberAccess != null)
+            if (!(expression.Body is ParameterExpression))
             {
-                if (!(memberAccess.Expression is ParameterExpression))
-                    throw new ArgumentException();
+                if (expression.Body is MemberExpression memberAccess)
+                {
+                    if (!(memberAccess.Expression is ParameterExpression))
+                    {
+                        throw new ArgumentException();
+                    }
 
-                memberName = memberAccess.Member.Name.ToLowerInvariant();
+                    memberName = memberAccess.Member.Name.ToLowerInvariant();
+                }
+                else
+                {
+                    throw new ArgumentException();
+                }
             }
             else
-                throw new ArgumentException();
+            {
+                memberName = null;
+            }
 
             return previousParameters.WithSort(memberName, ascending);
         }
@@ -197,12 +199,9 @@ namespace LinqToWiki.Expressions
 
             var body = expression.Body as ParameterExpression;
 
-            if (parameter != body)
-                throw new InvalidOperationException(
-                    string.Format(
-                        "Select expression with the return type of '{0}' has to be identity.", expression.Body.Type));
-
-            return previousParameters;
+            return parameter != body
+                ? throw new InvalidOperationException($"Select expression with the return type of '{expression.Body.Type}' has to be identity.")
+                : previousParameters;
         }
     }
 }

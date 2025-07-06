@@ -7,7 +7,8 @@ namespace LinqToWiki
     /// (i.e. <c>revisions</c>).
     /// </summary>
     public interface IFirst
-    {}
+    {
+    }
 
     /// <summary>
     /// Extensions for modules that implement <see cref="IFirst"/>.

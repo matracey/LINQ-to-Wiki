@@ -13,7 +13,8 @@ namespace LinqToWiki
     {
         public WikiQuerySortable(QueryProcessor<TSelect> queryProcessor, QueryParameters<TSelect, TSelect> parameters)
             : base(queryProcessor, parameters)
-        {}
+        {
+        }
 
         /// <summary>
         /// Specify filter or other parameter of the query.
@@ -56,7 +57,8 @@ namespace LinqToWiki
     {
         public WikiQuery(QueryProcessor<TSelect> queryProcessor, QueryParameters<TSelect, TSelect> parameters)
             : base(queryProcessor, parameters)
-        {}
+        {
+        }
 
         /// <summary>
         /// Specify filter or other parameter of the query.

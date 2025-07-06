@@ -38,7 +38,9 @@ namespace LinqToWiki.Parameters
             var stack = new Stack<NameValueParameter>();
 
             for (NameValueParameter current = this; current != null; current = current.Previous)
+            {
                 stack.Push(current);
+            }
 
             return stack.GetEnumerator();
         }
@@ -50,7 +52,7 @@ namespace LinqToWiki.Parameters
 
         public override string ToString()
         {
-            return string.Format("{0}={1}", Name, Value);
+            return $"{Name}={Value}";
         }
     }
 
@@ -66,7 +68,7 @@ namespace LinqToWiki.Parameters
 
         public override string ToString()
         {
-            return string.Format("{0}=<file>", Name);
+            return $"{Name}=<file>";
         }
     }
 }

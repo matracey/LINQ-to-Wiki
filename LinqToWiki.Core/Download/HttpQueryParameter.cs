@@ -24,23 +24,39 @@ namespace LinqToWiki.Download
 
         public override string ToString()
         {
-            return string.Format("{0}={1}", Name, Value);
+            return $"{Name}={Value}";
         }
     }
 
     public class HttpQueryFileParameter : HttpQueryParameterBase
     {
-        public Stream File { get; private set; }
+        public Stream File
+        {
+            get
+            {
+                if (m_memoryStream == null)
+                {
+                    m_memoryStream = new MemoryStream();
+                    m_file.CopyTo(m_memoryStream);
+                }
+
+                m_memoryStream.Position = 0; // Reset the position for reading
+                return m_memoryStream;
+            }
+        }
+
+        private readonly Stream m_file;
+        private MemoryStream m_memoryStream;
 
         public HttpQueryFileParameter(string name, Stream file)
             : base(name)
         {
-            File = file;
+            m_file = file;
         }
 
         public override string ToString()
         {
-            return string.Format("{0}=<file>", Name);
+            return $"{Name}=<file>";
         }
     }
 }

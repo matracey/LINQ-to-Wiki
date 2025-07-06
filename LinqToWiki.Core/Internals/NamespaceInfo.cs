@@ -28,7 +28,8 @@ namespace LinqToWiki.Internals
         /// </summary>
         public NamespaceInfo(WikiInfo wiki)
             : this(GetNamespaces(wiki))
-        {}
+        {
+        }
 
         /// <summary>
         /// Downloads the namespaces for a wiki.

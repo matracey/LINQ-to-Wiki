@@ -14,17 +14,8 @@ namespace LinqToWiki.Collections
         /// </summary>
         public TValue this[TKey1 key1, TKey2 key2]
         {
-            get
-            {
-                TValue result;
-                if (TryGetValue(key1, key2, out result))
-                    return result;
-                throw new KeyNotFoundException();
-            }
-            set
-            {
-                GetOrCreateInnerDictionary(key1)[key2] = value;
-            }
+            get => TryGetValue(key1, key2, out var result) ? result : throw new KeyNotFoundException();
+            set => GetOrCreateInnerDictionary(key1)[key2] = value;
         }
 
         /// <summary>
@@ -33,13 +24,13 @@ namespace LinqToWiki.Collections
         /// </summary>
         private Dictionary<TKey2, TValue> GetOrCreateInnerDictionary(TKey1 key1)
         {
-            Dictionary<TKey2, TValue> innerDict;
-            bool found = TryGetValue(key1, out innerDict);
-            if (!found)
+            var found = TryGetValue(key1, out var innerDict);
+            if (found)
             {
-                innerDict = new Dictionary<TKey2, TValue>();
-                Add(key1, innerDict);
+                return innerDict;
             }
+            innerDict = new Dictionary<TKey2, TValue>();
+            Add(key1, innerDict);
             return innerDict;
         }
 
@@ -49,12 +40,13 @@ namespace LinqToWiki.Collections
         /// <returns><c>>true</c> if the Dictionary contains an element with the specified key; otherwise, <c>false</c>.</returns>
         public bool TryGetValue(TKey1 key1, TKey2 key2, out TValue value)
         {
-            Dictionary<TKey2, TValue> innerDict;
-            bool found = TryGetValue(key1, out innerDict);
+            var found = TryGetValue(key1, out var innerDict);
             if (found)
+            {
                 return innerDict.TryGetValue(key2, out value);
+            }
 
-            value = default(TValue);
+            value = default;
             return false;
         }
 

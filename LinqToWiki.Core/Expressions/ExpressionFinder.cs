@@ -38,10 +38,10 @@ namespace LinqToWiki.Expressions
             /// </summary>
             public override Expression Visit(Expression node)
             {
-                var casted = node as T;
-
-                if (casted != null && m_condition(casted))
+                if (node is T casted && m_condition(casted))
+                {
                     m_results.Add(casted);
+                }
 
                 return base.Visit(node);
             }

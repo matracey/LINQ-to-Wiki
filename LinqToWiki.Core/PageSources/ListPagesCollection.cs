@@ -45,7 +45,9 @@ namespace LinqToWiki
         public IEnumerable<HttpQueryParameterBase> GetNextPage(int limit)
         {
             if (limit == -1)
+            {
                 limit = m_pageSize;
+            }
 
             var formattedValues = new List<string>();
             int i = 0;
@@ -57,7 +59,10 @@ namespace LinqToWiki
                 formattedValues.Add(m_enumerator.Current);
                 m_shouldMove = true;
                 if (++i >= limit)
+                {
                     break;
+                }
+
                 MoveIfNecessary();
             }
             return new[] { new HttpQueryParameter(m_parameterName, formattedValues.ToQueryString()) };

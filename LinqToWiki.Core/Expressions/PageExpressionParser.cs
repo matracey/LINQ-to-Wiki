@@ -65,8 +65,10 @@ namespace LinqToWiki.Expressions
             {
                 var type = node.Type;
                 if (type.IsGenericType && BaseTypes(type).Contains(typeof(WikiQueryResult<,>)))
+                {
                     throw new InvalidOperationException(
                         "Can't use the result of a query directly, you have to use ToEnumerable or ToList.");
+                }
             }
 
             return base.Visit(node);
@@ -79,10 +81,14 @@ namespace LinqToWiki.Expressions
                 var memberName = node.Member.Name;
 
                 if (memberName == "info")
+                {
                     return m_pageDataGetInfoCall;
+                }
 
                 if (!m_parameters.ContainsKey(memberName))
+                {
                     m_parameters.Add(memberName, new PropQueryParameters(memberName));
+                }
 
                 return CreateGetDataExpression(node.Type, memberName);
             }
@@ -107,11 +113,10 @@ namespace LinqToWiki.Expressions
 
             if (node.Object == m_pageParameter)
             {
-                if (declaringType == typeof(object))
-                    throw new InvalidOperationException(
-                        string.Format("The method '{0}' is not supported.", methodName));
-
-                return Expression.Call(
+                return declaringType == typeof(object)
+                    ? throw new InvalidOperationException(
+                        $"The method '{methodName}' is not supported.")
+                    : (Expression)Expression.Call(
                     m_pageDataParameter,
                     PageDataGetDataMethod.MakeGenericMethod(node.Method.ReturnType.GetGenericArguments().Last()),
                     Expression.Constant(methodName));
@@ -129,10 +134,10 @@ namespace LinqToWiki.Expressions
                 var propName = propExpression.Method.Name;
 
                 if (m_parameters.ContainsKey(propName))
+                {
                     throw new InvalidOperationException(
-                        string.Format(
-                            "Each prop module can be use at most once in a single query, but you used the module '{0}' more than once.",
-                            propName));
+                        $"Each prop module can be use at most once in a single query, but you used the module '{propName}' more than once.");
+                }
 
                 var createQueryParametersMethod = typeof(QueryParameters).GetMethod("Create")
                     .MakeGenericMethod(propExpression.Type.GetGenericArguments().Last());
@@ -151,7 +156,9 @@ namespace LinqToWiki.Expressions
                 parameter.CopyFrom(processedQueryObject.Parameters);
 
                 if (first)
+                {
                     parameter = parameter.WithOnlyFirst();
+                }
 
                 m_parameters.Add(propName, parameter);
 
@@ -162,10 +169,14 @@ namespace LinqToWiki.Expressions
                 m_canUsePage = false;
 
                 if (methodName == "ToEnumerable")
+                {
                     return obj;
+                }
 
                 if (first)
+                {
                     methodName = "SingleOrDefault";
+                }
 
                 return Expression.Call(
                     typeof(Enumerable), methodName, new[] { obj.Type.GetGenericArguments().Single() }, obj);
@@ -176,7 +187,9 @@ namespace LinqToWiki.Expressions
                 var obj = Visit(node.Object);
 
                 if (methodName != "Select")
+                {
                     return obj;
+                }
 
                 var argument = ((UnaryExpression)node.Arguments.Single()).Operand;
                 var genericArguments = argument.Type.GetGenericArguments();
@@ -199,10 +212,14 @@ namespace LinqToWiki.Expressions
                 type = type.BaseType;
 
                 if (type == null)
+                {
                     yield break;
+                }
 
                 if (type.IsGenericType)
+                {
                     type = type.GetGenericTypeDefinition();
+                }
 
                 yield return type;
             }
@@ -232,7 +249,9 @@ namespace LinqToWiki.Expressions
                     .ToArray();
 
                 if (tokens.Any())
+                {
                     propQueryParameters = propQueryParameters.AddSingleValue("token", tokens.ToQueryString());
+                }
 
                 parameters["info"] = propQueryParameters;
             }

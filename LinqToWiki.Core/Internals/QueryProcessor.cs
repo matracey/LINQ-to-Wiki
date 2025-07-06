@@ -37,7 +37,9 @@ namespace LinqToWiki.Internals
                 var part = GetListItems(parameters.Selector, downloaded);
 
                 foreach (var item in part)
+                {
                     yield return item;
+                }
 
                 queryContinue = GetQueryContinue(downloaded, m_queryTypeProperties.ModuleName);
             } while (queryContinue != null);
@@ -86,8 +88,11 @@ namespace LinqToWiki.Internals
                 var element = downloaded.Element(m_queryTypeProperties.ModuleName);
                 var attribute = downloaded.Attribute(m_queryTypeProperties.ModuleName);
                 if (element == null && attribute != null)
-                    element = new XElement(attribute.Name, attribute.Value);
-                return
+                    {
+                        element = new XElement(attribute.Name, attribute.Value);
+                    }
+
+                    return
                     parameters.Selector(m_queryTypeProperties.Parse(element, m_wiki));
             }
 
@@ -153,7 +158,9 @@ namespace LinqToWiki.Internals
             IEnumerable<HttpQueryParameter> queryContinues = null)
         {
             if (queryContinues != null)
+            {
                 processedParameters = processedParameters.Concat(queryContinues.Where(x => x != null));
+            }
 
             int i = 1;
 
@@ -170,7 +177,10 @@ namespace LinqToWiki.Internals
                     if (exception.Code == "maxlag")
                     {
                         if (Downloader.LogDownloading)
+                        {
                             Console.WriteLine(exception.Message);
+                        }
+
                         var waitTime = TimeSpan.FromSeconds(Math.Pow(2, i) * 5);
                         System.Threading.Thread.Sleep(waitTime);
                         continue;
@@ -208,19 +218,23 @@ namespace LinqToWiki.Internals
                 addParameter("generator", generatorParameter.Item2);
             }
             else
+            {
                 parsedParameters.AddRange(
                     queryTypeProperties.BaseParameters.Select(p => new HttpQueryParameter(p.Item1, p.Item2)));
+            }
 
             string prefix = queryTypeProperties.Prefix;
 
             if (generator)
+            {
                 prefix = 'g' + prefix;
+            }
 
             if (parameters.Value != null)
+            {
                 foreach (var value in parameters.Value)
                 {
-                    var fileParameter = value as NameFileParameter;
-                    if (fileParameter != null)
+                    if (value is NameFileParameter fileParameter)
                     {
                         parsedParameters.Add(new HttpQueryFileParameter(fileParameter.Name, fileParameter.File));
                     }
@@ -229,11 +243,14 @@ namespace LinqToWiki.Internals
                         addParameter(prefix + value.Name, value.Value);
                     }
                 }
+            }
 
             if (parameters.Ascending != null)
             {
                 if (parameters.Sort != null)
+                {
                     addParameter(prefix + "sort", parameters.Sort);
+                }
 
                 string dir;
                 switch (queryTypeProperties.SortType)
@@ -254,7 +271,9 @@ namespace LinqToWiki.Internals
             var selectedProps = new List<string>();
 
             if (parameters.Properties == null)
+            {
                 selectedProps.AddRange(queryTypeProperties.GetAllProps().Except(new[] { "" }));
+            }
             else
             {
                 var requiredPropsCollection =
@@ -265,17 +284,23 @@ namespace LinqToWiki.Internals
                 foreach (var props in requiredPropsCollection)
                 {
                     if (!props.Intersect(selectedProps).Any())
+                    {
                         selectedProps.Add(props.First());
+                    }
                 }
             }
 
             if (list)
             {
                 if (!generator)
+                {
                     addParameter(prefix + "prop", selectedProps.ToQueryString());
+                }
 
                 if (limit != 0)
+                {
                     addParameter(prefix + "limit", limit == -1 ? "max" : limit.ToQueryString());
+                }
             }
 
             return parsedParameters;
@@ -299,7 +324,9 @@ namespace LinqToWiki.Internals
             var queryContinueElement = downloaded.Element("query-continue");
 
             if (queryContinueElement == null)
+            {
                 return new Dictionary<string, HttpQueryParameter>();
+            }
 
             var listContinueElements = queryContinueElement.Elements();
             var listContinueAttributes = listContinueElements.Attributes();

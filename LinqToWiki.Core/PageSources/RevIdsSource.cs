@@ -11,6 +11,7 @@ namespace LinqToWiki
     {
         public RevIdsSource(WikiInfo wiki, IEnumerable<long> revIds)
             : base(wiki, "revids", revIds.Select(id => id.ToQueryString()))
-        {}
+        {
+        }
     }
 }

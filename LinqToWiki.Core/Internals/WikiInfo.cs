@@ -48,28 +48,41 @@ namespace LinqToWiki.Internals
             PagesSourcePageSize = 50;
 
             if (string.IsNullOrWhiteSpace(userAgent))
+            {
                 throw new ArgumentException("User agent has to be set.", "userAgent");
+            }
+
             UserAgent = userAgent;
 
             if (baseUrl == null)
+            {
                 baseUrl = "en.wikipedia.org";
+            }
 
             if (!baseUrl.StartsWith("http"))
+            {
                 baseUrl = "http://" + baseUrl;
+            }
 
             BaseUrl = new Uri(baseUrl);
 
             if (apiPath == null)
+            {
                 apiPath = "/w/api.php";
+            }
 
             ApiUrl = new Uri(BaseUrl, apiPath);
 
             Downloader = new Downloader(this);
 
             if (namespaces == null)
+            {
                 Namespaces = new NamespaceInfo(this);
+            }
             else
+            {
                 Namespaces = new NamespaceInfo(namespaces);
+            }
         }
     }
 }

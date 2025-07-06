@@ -86,7 +86,7 @@ namespace LinqToWiki.Internals
         /// </summary>
         private static string ToQueryString(object obj)
         {
-            throw new InvalidOperationException(string.Format("Object '{0}' cannot converted to query string.", obj));
+            throw new InvalidOperationException($"Object '{obj}' cannot converted to query string.");
         }
 
         /// <summary>

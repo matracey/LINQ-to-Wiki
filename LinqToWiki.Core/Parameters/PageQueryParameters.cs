@@ -31,10 +31,9 @@ namespace LinqToWiki.Parameters
         /// <returns></returns>
         public PageQueryParameters WithParameters(IEnumerable<PropQueryParameters> parametersCollection)
         {
-            if (PropQueryParametersCollection != null)
-                throw new InvalidOperationException();
-
-            return new PageQueryParameters(PagesCollection) { PropQueryParametersCollection = parametersCollection };
+            return PropQueryParametersCollection != null
+                ? throw new InvalidOperationException()
+                : new PageQueryParameters(PagesCollection) { PropQueryParametersCollection = parametersCollection };
         }
     }
 }

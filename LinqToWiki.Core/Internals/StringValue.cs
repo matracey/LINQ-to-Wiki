@@ -25,21 +25,26 @@ namespace LinqToWiki.Internals
         public bool Equals(StringValue other)
         {
             if (ReferenceEquals(null, other))
+            {
                 return false;
-            if (ReferenceEquals(this, other))
-                return true;
-            return Equals(other.Value, Value);
+            }
+
+            return ReferenceEquals(this, other) ? true : Equals(other.Value, Value);
         }
 
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj))
+            {
                 return false;
+            }
+
             if (ReferenceEquals(this, obj))
+            {
                 return true;
-            if (obj.GetType() != GetType())
-                return false;
-            return Equals((StringValue)obj);
+            }
+
+            return obj.GetType() != GetType() ? false : Equals((StringValue)obj);
         }
 
         public override int GetHashCode()

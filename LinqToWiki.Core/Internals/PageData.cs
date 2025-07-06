@@ -34,7 +34,9 @@ namespace LinqToWiki.Internals
             var pageIdAttribute = element.Attribute("pageid");
 
             if (pageIdAttribute != null)
+            {
                 PageId = ValueParser.ParseInt64(pageIdAttribute.Value);
+            }
 
             AddData(element);
         }
@@ -60,9 +62,13 @@ namespace LinqToWiki.Internals
                 var dataList = GetOrCreateDataList(name);
 
                 if (dataElement.HasAttributes)
+                {
                     dataList.Add(parser(dataElement, m_wiki));
+                }
                 else
+                {
                     dataList.AddRange(dataElement.Elements().Select(e => parser(e, m_wiki)));
+                }
             }
         }
 
@@ -95,10 +101,14 @@ namespace LinqToWiki.Internals
             while (true)
             {
                 while (dataList.Count <= i && m_pagingManager.HasMore(name))
+                {
                     m_pagingManager.GetMore();
+                }
 
                 if (dataList.Count <= i)
+                {
                     break;
+                }
 
                 yield return (T)dataList[i++];
             }

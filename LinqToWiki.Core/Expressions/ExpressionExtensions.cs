@@ -12,10 +12,7 @@ namespace LinqToWiki.Expressions
         /// </summary>
         public static BinaryExpression Switch(this BinaryExpression expression)
         {
-            if (expression == null)
-                return null;
-
-            return Expression.MakeBinary(expression.NodeType, expression.Right, expression.Left);
+            return expression == null ? null : Expression.MakeBinary(expression.NodeType, expression.Right, expression.Left);
         }
     }
 }

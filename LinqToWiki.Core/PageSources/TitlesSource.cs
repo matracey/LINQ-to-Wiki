@@ -10,6 +10,7 @@ namespace LinqToWiki
     {
         public TitlesSource(WikiInfo wiki, IEnumerable<string> titles)
             : base(wiki, "titles", titles)
-        {}
+        {
+        }
     }
 }

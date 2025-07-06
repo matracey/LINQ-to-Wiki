@@ -68,7 +68,9 @@ namespace LinqToWiki
         {
             Namespace result;
             if (!Namespaces.TryGetValue(id, out result))
+            {
                 result = new Namespace(id, null);
+            }
 
             return result;
         }
@@ -130,21 +132,26 @@ namespace LinqToWiki
         public bool Equals(Namespace other)
         {
             if (ReferenceEquals(null, other))
+            {
                 return false;
-            if (ReferenceEquals(this, other))
-                return true;
-            return other.Id == Id;
+            }
+
+            return ReferenceEquals(this, other) ? true : other.Id == Id;
         }
 
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj))
+            {
                 return false;
+            }
+
             if (ReferenceEquals(this, obj))
+            {
                 return true;
-            if (obj.GetType() != typeof(Namespace))
-                return false;
-            return Equals((Namespace)obj);
+            }
+
+            return obj.GetType() != typeof(Namespace) ? false : Equals((Namespace)obj);
         }
 
         public override int GetHashCode()
@@ -154,7 +161,7 @@ namespace LinqToWiki
 
         public override string ToString()
         {
-            return string.Format("Id: {0}, Name: '{1}'", Id, Name);
+            return $"Id: {Id}, Name: '{Name}'";
         }
     }
 }

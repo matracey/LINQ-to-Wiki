@@ -18,10 +18,7 @@ namespace LinqToWiki.Expressions
 
         public override Expression Visit(Expression exp)
         {
-            if (exp == m_toReplace)
-                return m_replaceWith;
-
-            return base.Visit(exp);
+            return exp == m_toReplace ? m_replaceWith : base.Visit(exp);
         }
 
         /// <summary>

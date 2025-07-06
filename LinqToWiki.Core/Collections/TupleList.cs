@@ -15,7 +15,8 @@ namespace LinqToWiki.Collections
         /// Creates an empty list.
         /// </summary>
         public TupleList()
-        {}
+        {
+        }
 
         /// <summary>
         /// Creates a list based on another collection.
@@ -23,7 +24,8 @@ namespace LinqToWiki.Collections
         /// <param name="collection"></param>
         public TupleList(IEnumerable<Tuple<T1, T2>> collection)
             : base(collection)
-        {}
+        {
+        }
 
         /// <summary>
         /// Adds a pair of items to the end of the list.
@@ -37,7 +39,7 @@ namespace LinqToWiki.Collections
         /// Finds the first tuple with given <see cref="Tuple{T1,T2}.Item1"/>
         /// and returns its <see cref="Tuple{T1,T2}.Item2"/>.
         /// 
-        /// The set accesor finds first item with given <see cref="Tuple{T1,T2}.Item1"/>
+        /// The set accessor finds first item with given <see cref="Tuple{T1,T2}.Item1"/>
         /// and replaces it with new <see cref="Tuple{T1,T2}"/> containing <c>value</c>
         /// as <see cref="Tuple{T1,T2}.Item2"/>.
         /// </summary>
@@ -45,13 +47,16 @@ namespace LinqToWiki.Collections
         {
             get
             {
-                return this.Find(x => KeyEqualityComparer.Equals(x.Item1, key)).Item2;
+                return Find(x => KeyEqualityComparer.Equals(x.Item1, key)).Item2;
             }
             set
             {
-                var index = this.FindIndex(x => KeyEqualityComparer.Equals(x.Item1, key));
+                var index = FindIndex(x => KeyEqualityComparer.Equals(x.Item1, key));
                 if (index < 0)
+                {
                     throw new InvalidOperationException();
+                }
+
                 this[index] = Tuple.Create(key, value);
             }
         }

@@ -29,13 +29,12 @@ namespace LinqToWiki.Expressions
         {
             // doesn't work correctly for other types of operations (and it's not necessary)
             if (node.NodeType != ExpressionType.Equal && node.NodeType != ExpressionType.NotEqual)
+            {
                 return null;
+            }
 
-            var leftUnary = node.Left as UnaryExpression;
-            var rightConstant = node.Right as ConstantExpression;
-
-            if (leftUnary != null && leftUnary.NodeType == ExpressionType.Convert && leftUnary.Operand.Type.IsEnum
-                && rightConstant != null)
+            if (node.Left is UnaryExpression leftUnary && leftUnary.NodeType == ExpressionType.Convert && leftUnary.Operand.Type.IsEnum
+                && node.Right is ConstantExpression rightConstant)
             {
                 var enumType = leftUnary.Operand.Type;
                 var enumValue = Enum.ToObject(enumType, rightConstant.Value);

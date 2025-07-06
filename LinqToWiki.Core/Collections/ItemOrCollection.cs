@@ -28,7 +28,8 @@ namespace LinqToWiki.Collections
     public class ItemOrCollection<T>
     {
         private ItemOrCollection()
-        {}
+        {
+        }
 
         public static bool operator ==(ItemOrCollection<T> first, T second)
         {

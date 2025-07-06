@@ -23,10 +23,7 @@ namespace LinqToWiki.Internals
         /// </summary>
         public static DateTime ParseDateTime(string value)
         {
-            if (value == "infinity")
-                return DateTime.MaxValue;
-
-            return DateTime.Parse(value, CultureInfo.InvariantCulture);
+            return value == "infinity" ? DateTime.MaxValue : DateTime.Parse(value, CultureInfo.InvariantCulture);
         }
 
         /// <summary>
@@ -44,10 +41,7 @@ namespace LinqToWiki.Internals
         /// </summary>
         public static bool ParseBoolean(string value)
         {
-            if (value != string.Empty)
-                throw new ArgumentException("value");
-
-            return true;
+            return value != string.Empty ? throw new ArgumentException("value") : true;
         }
 
         /// <summary>

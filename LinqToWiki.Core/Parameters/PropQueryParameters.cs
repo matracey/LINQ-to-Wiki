@@ -63,11 +63,15 @@ namespace LinqToWiki.Parameters
         public PropQueryParameters AddSingleValue(string name, string value)
         {
             if (value == null)
+            {
                 return this;
+            }
 
             if (Value != null && Value.Any(v => v.Name == name))
+            {
                 throw new InvalidOperationException(
-                    string.Format("Tried adding value with the name '{0}' that is already present.", name));
+                    $"Tried adding value with the name '{name}' that is already present.");
+            }
 
             var result = new PropQueryParameters(PropName);
             CopyTo(result);

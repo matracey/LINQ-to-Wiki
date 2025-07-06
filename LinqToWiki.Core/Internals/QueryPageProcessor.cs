@@ -70,7 +70,9 @@ namespace LinqToWiki.Internals
                     var part = partPageData.Select(selector);
 
                     foreach (var item in part)
+                    {
                         yield return item;
+                    }
                 }
 
                 primaryQueryContinue = newPrimaryQueryContinue;
@@ -91,11 +93,15 @@ namespace LinqToWiki.Internals
             var propNames = new List<string>();
 
             if (!withInfo)
+            {
                 propQueryParametersCollection = propQueryParametersCollection.Where(x => x.PropName != "info");
+            }
 
             if (includedProperties != null)
+            {
                 propQueryParametersCollection =
                     propQueryParametersCollection.Where(x => includedProperties.Contains(x.PropName));
+            }
 
             foreach (var propQueryParameters in propQueryParametersCollection)
             {

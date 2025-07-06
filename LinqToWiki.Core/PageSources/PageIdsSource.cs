@@ -11,6 +11,7 @@ namespace LinqToWiki
     {
         public PageIdsSource(WikiInfo wiki, IEnumerable<long> pageIds)
             : base(wiki, "pageids", pageIds.Select(id => id.ToQueryString()))
-        {}
+        {
+        }
     }
 }

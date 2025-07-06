@@ -1,16 +1,15 @@
+using LinqToWiki.Internals;
+using RestSharp;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Xml.Linq;
-using LinqToWiki.Internals;
-using RestSharp;
 
 namespace LinqToWiki.Download
 {
     /// <summary>
-    /// Downloads the results of a query from the wiki web site.
+    /// Downloads the results of a query from the wiki website.
     /// </summary>
     public class Downloader
     {
@@ -34,7 +33,7 @@ namespace LinqToWiki.Download
         /// <summary>
         /// The value of the <c>User-Agent</c> header of requests.
         /// </summary>
-        public string UserAgent { get { return string.Format("{0} LinqToWiki", m_wiki.UserAgent); } }
+        public string UserAgent => $"{m_wiki.UserAgent} LinqToWiki";
 
         private readonly WikiInfo m_wiki;
         private readonly CookieContainer m_cookies = new CookieContainer();
@@ -52,26 +51,30 @@ namespace LinqToWiki.Download
             parameters = parameters.ToArray();
 
             if (LogDownloading)
+            {
                 LogRequest(parameters);
+            }
 
             parameters = new[] { new HttpQueryParameter("format", "xml") }.Concat(parameters);
 
             if (UseMaxlag)
+            {
                 parameters = parameters.Concat(new[] { new HttpQueryParameter("maxlag", "5") });
+            }
 
-            var client = new RestClient
+            var client = new RestClient(new RestClientOptions
             {
                 BaseUrl = new Uri(m_wiki.ApiUrl.AbsoluteUri + "?rawcontinue"),
                 CookieContainer = m_cookies,
                 UserAgent = UserAgent
-            };
-            var request = new RestRequest(Method.POST);
+            });
+            var request = new RestRequest(string.Empty, Method.Post);
 
             WriteParameters(parameters, request);
 
             var response = client.Execute(request);
 
-            return XDocument.Parse(response.Content);
+            return XDocument.Parse(response.Content ?? "");
         }
 
         /// <summary>
@@ -79,7 +82,7 @@ namespace LinqToWiki.Download
         /// </summary>
         private void LogRequest(IEnumerable<HttpQueryParameterBase> parameters)
         {
-            Console.WriteLine("{0}?{1}", m_wiki.ApiUrl, string.Join("&", parameters));
+            Console.WriteLine($"{m_wiki.ApiUrl}?{string.Join("&", parameters)}");
         }
 
         /// <summary>
@@ -89,16 +92,14 @@ namespace LinqToWiki.Download
         {
             foreach (var parameter in parameters)
             {
-                var normalParameter = parameter as HttpQueryParameter;
-                if (normalParameter != null)
+                switch (parameter)
                 {
-                    request.AddParameter(normalParameter.Name, normalParameter.Value);
-                    continue;
-                }
-                var fileParameter = parameter as HttpQueryFileParameter;
-                if (fileParameter != null)
-                {
-                    request.AddFile(fileParameter.Name, stream => fileParameter.File.CopyTo(stream), "noname");
+                    case HttpQueryParameter normalParameter:
+                        request.AddParameter(normalParameter.Name, normalParameter.Value);
+                        continue;
+                    case HttpQueryFileParameter fileParameter:
+                        request.AddFile(fileParameter.Name, () => fileParameter.File, "noname");
+                        break;
                 }
             }
         }

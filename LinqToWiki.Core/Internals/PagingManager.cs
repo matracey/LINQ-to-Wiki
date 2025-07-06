@@ -66,7 +66,9 @@ namespace LinqToWiki.Internals
             var queryContinues = QueryProcessor.GetQueryContinues(downloaded);
 
             if (m_generator != null)
+            {
                 queryContinues.Remove(m_generator);
+            }
 
             var pageElements = downloaded.Element("query").Element("pages").Elements("page");
 
@@ -76,7 +78,9 @@ namespace LinqToWiki.Internals
 
                 PageData pageData;
                 if (m_pages.TryGetValue(pageId, out pageData))
+                {
                     pageData.AddData(pageElement);
+                }
             }
 
             m_secondaryQueryContinues = queryContinues;
